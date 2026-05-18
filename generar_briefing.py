@@ -28,6 +28,10 @@ LIQUIDEZ     = 1000
 TOTAL_INV    = sum(v['importe'] for v in CARTERA.values())
 CUENTA_TAE   = 2.0
 
+# ── INDICADOR BUFFETT (actualizar manualmente cada trimestre) ─
+BUFFETT_IND   = 195.0    # % = Capitalización bursátil EE.UU. / PIB × 100
+BUFFETT_DATE  = "May 2026"  # fecha del dato
+
 INDICES = {
     'sp500':      ('^GSPC',     'S&P 500',        '$'),
     'eurostoxx':  ('^STOXX50E', 'EuroStoxx 50',   ''),
@@ -234,7 +238,7 @@ HTML = f"""<!DOCTYPE html>
 <style>
 :root{{--bg:#0a0f1e;--bg2:#111827;--bg3:#1a2235;--card:#1e2d45;--border:#2d4a6e;--accent:#3b82f6;--accent2:#60a5fa;--gold:#f59e0b;--gold2:#fbbf24;--green:#10b981;--green2:#34d399;--red:#ef4444;--red2:#f87171;--yellow:#f59e0b;--yellow2:#fcd34d;--purple:#8b5cf6;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;}}
 *{{margin:0;padding:0;box-sizing:border-box;}}
-body{{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}}
+body{{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:16px;}}
 .hero{{background:linear-gradient(135deg,#0a0f1e 0%,#0f2040 40%,#1a1040 100%);border-bottom:1px solid var(--border);padding:28px 32px 20px;position:relative;overflow:hidden;}}
 .hero::before{{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(59,130,246,0.12) 0%,transparent 70%);border-radius:50%;}}
 .hero-top{{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;position:relative;z-index:1;}}
@@ -263,7 +267,7 @@ body{{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var
 .section-title::after{{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent);}}
 .card{{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 4px 24px rgba(0,0,0,0.4);transition:border-color 0.2s;}}
 .card:hover{{border-color:var(--accent);}}
-.card-title{{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}}
+.card-title{{font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}}
 .kpi{{display:flex;flex-direction:column;}}
 .kpi .icon{{font-size:24px;margin-bottom:8px;}}
 .kpi .value{{font-size:28px;font-weight:800;letter-spacing:-0.03em;}}
@@ -272,22 +276,22 @@ body{{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var
 .news-item{{padding:14px 0;border-bottom:1px solid rgba(45,74,110,0.5);display:flex;gap:14px;align-items:flex-start;}}
 .news-item:last-child{{border-bottom:none;}}
 .news-num{{font-size:11px;font-weight:800;color:var(--accent2);background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}}
-.news-title{{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;}}
-.news-body{{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5;}}
-.news-source{{font-size:11px;color:var(--text3);margin-top:4px;}}
+.news-title{{font-size:16px;font-weight:600;color:var(--text);line-height:1.4;}}
+.news-body{{font-size:14px;color:var(--text2);margin-top:4px;line-height:1.5;}}
+.news-source{{font-size:12px;color:var(--text3);margin-top:4px;}}
 .news-tag{{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:6px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}}
 .tag-geo{{background:rgba(239,68,68,0.15);color:var(--red2);border:1px solid rgba(239,68,68,0.2);}}
 .tag-mon{{background:rgba(59,130,246,0.15);color:var(--accent2);border:1px solid rgba(59,130,246,0.2);}}
 .tag-inf{{background:rgba(245,158,11,0.15);color:var(--gold2);border:1px solid rgba(245,158,11,0.2);}}
 .tag-mkt{{background:rgba(16,185,129,0.15);color:var(--green2);border:1px solid rgba(16,185,129,0.2);}}
 .tag-trade{{background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.2);}}
-.ptable{{width:100%;border-collapse:collapse;font-size:13px;}}
+.ptable{{width:100%;border-collapse:collapse;font-size:15px;}}
 .ptable th{{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border);}}
 .ptable td{{padding:12px 10px;border-bottom:1px solid rgba(45,74,110,0.3);vertical-align:middle;}}
 .ptable tr:last-child td{{border-bottom:none;}}
 .ptable tr:hover td{{background:rgba(59,130,246,0.04);}}
-.fund-name{{font-weight:600;color:var(--text);font-size:13px;}}
-.fund-ticker{{font-size:11px;color:var(--text3);margin-top:2px;}}
+.fund-name{{font-weight:600;color:var(--text);font-size:15px;}}
+.fund-ticker{{font-size:13px;color:var(--text3);margin-top:2px;}}
 .total-row td{{font-weight:700;background:rgba(59,130,246,0.06);color:var(--accent2);border-top:1px solid var(--border);}}
 .threshold-bar{{margin:10px 0;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.05);}}
 .scenario{{background:var(--bg3);border-radius:12px;padding:14px 16px;margin-bottom:12px;border:1px solid var(--border);}}
@@ -498,6 +502,78 @@ footer{{border-top:1px solid var(--border);padding:24px 32px;text-align:center;c
       <div class="threshold-bar"><div><span style="font-size:20px;font-weight:800;color:var(--red2)">−20%</span> &nbsp;Mercado bajista severo</div><div style="font-size:16px;font-weight:700">−{int(TOTAL_INV*0.20):,}€</div></div>
       <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:14px 16px;margin-top:12px;font-size:12px;color:var(--text2);line-height:1.6">
         <strong style="color:var(--accent2)">Perspectiva histórica:</strong> Una caída del 20% en mercados desarrollados ha tardado de media <strong style="color:var(--text)">2–4 años</strong> en recuperarse. El MSCI World lleva ~10% anualizado desde 2000. La variación de hoy ({total_impact_eur:+.1f}€) es el <strong style="color:var(--text)">{abs(impact_pct):.2f}%</strong> de la inversión total.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- INDICADOR BUFFETT -->
+  <div class="section">
+    <div class="section-title">📐 Indicador Buffett — Valoración del mercado EE.UU.</div>
+    <div class="card">
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:28px;align-items:start">
+
+        <!-- Valor y barra -->
+        <div>
+          <div class="card-title">Capitalización / PIB</div>
+          <div style="font-size:58px;font-weight:900;letter-spacing:-0.04em;color:{'var(--red2)' if BUFFETT_IND>135 else ('var(--yellow2)' if BUFFETT_IND>115 else 'var(--green2)')}">{BUFFETT_IND:.0f}%</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px">Dato: {BUFFETT_DATE}</div>
+
+          <!-- Barra de zonas -->
+          <div style="margin-top:18px">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Zona actual</div>
+            <div style="display:flex;height:14px;border-radius:8px;overflow:hidden;gap:2px">
+              <div style="flex:75;background:rgba(16,185,129,0.7);border-radius:6px 0 0 6px;" title="&lt;75% Infravalorado"></div>
+              <div style="flex:40;background:rgba(245,158,11,0.7);" title="75-115% Valoración justa"></div>
+              <div style="flex:20;background:rgba(251,146,60,0.7);" title="115-135% Algo caro"></div>
+              <div style="flex:65;background:rgba(239,68,68,0.7);border-radius:0 6px 6px 0;" title="&gt;135% Sobrevalorado"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
+              <span>0%</span><span>75%</span><span>115%</span><span>135%</span><span>200%</span>
+            </div>
+            <!-- Marcador posición actual -->
+            <div style="position:relative;height:8px;margin-top:4px">
+              <div style="position:absolute;left:{min(98, BUFFETT_IND/2):.1f}%;transform:translateX(-50%);font-size:14px;">▲</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Explicación y rangos -->
+        <div>
+          <div class="card-title">¿Qué es y cómo interpretarlo?</div>
+          <div style="font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:16px">
+            El <strong style="color:var(--text)">Indicador Buffett</strong> divide la capitalización bursátil total de todas las empresas cotizadas en EE.UU. entre el PIB nominal del país, expresado en porcentaje. Warren Buffett lo calificó como «<em>probablemente el mejor indicador individual para saber dónde están las valoraciones en cualquier momento dado</em>».
+            <br><br>
+            Un valor <strong style="color:var(--green2)">por debajo del 75%</strong> históricamente ha señalado una bolsa barata y buenos retornos a largo plazo. Por encima del <strong style="color:var(--red2)">135%</strong>, el mercado cotiza con prima elevada y los retornos futuros esperados son menores.
+          </div>
+
+          <!-- Rangos en chips -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:8px 14px">
+              <div style="font-size:13px;font-weight:800;color:var(--green2)">🟢 &lt; 75%</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">Infravalorado<br>Excelente momento de compra</div>
+            </div>
+            <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:8px 14px">
+              <div style="font-size:13px;font-weight:800;color:var(--gold2)">🟡 75–115%</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">Valoración justa<br>Retornos históricos medios</div>
+            </div>
+            <div style="background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.25);border-radius:10px;padding:8px 14px">
+              <div style="font-size:13px;font-weight:800;color:#fb923c">🟠 115–135%</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">Algo caro<br>Retornos esperados menores</div>
+            </div>
+            <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:8px 14px">
+              <div style="font-size:13px;font-weight:800;color:var(--red2)">🔴 &gt; 135%</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">Sobrevalorado<br>Riesgo de corrección elevado</div>
+            </div>
+          </div>
+
+          <!-- Nota tipos -->
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--text2);line-height:1.6">
+            <strong style="color:var(--text2)">⚠️ Limitación clave:</strong> El indicador no ajusta por tipos de interés. Con tipos bajos (0-1%) son sostenibles valoraciones del 130–160%. Con los tipos actuales
+            (Fed 3,5% / BCE 2,0%), la «<em>zona justa ajustada</em>» baja a ~100–140%. El valor actual de <strong style="color:{'var(--red2)' if BUFFETT_IND>140 else 'var(--yellow2)'}">{BUFFETT_IND:.0f}%</strong> sitúa el mercado en zona de <strong style="color:{'var(--red2)' if BUFFETT_IND>140 else 'var(--yellow2)'}">{'valoración elevada' if BUFFETT_IND>140 else 'cautela'}</strong>.
+            <br><strong style="color:var(--text3)">Actualiza este valor trimestralmente</strong> editando <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px">BUFFETT_IND</code> en <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px">generar_briefing.py</code>.
+          </div>
+        </div>
       </div>
     </div>
   </div>
